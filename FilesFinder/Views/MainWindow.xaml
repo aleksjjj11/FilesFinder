@@ -1,0 +1,49 @@
+﻿<Window x:Class="FilesFinder.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:FilesFinder"
+        mc:Ignorable="d"
+        Background="Gray"
+        Title="MainWindow" Height="450" Width="800">
+    <Window.Resources>
+        <Style x:Key="BorderFrameStyle" TargetType="Border">
+            <Setter Property="Background" Value="#606060"/>
+            <Setter Property="Margin" Value="10 5"/>
+            <Setter Property="Padding" Value="10"/>
+            <Setter Property="CornerRadius" Value="10"/>
+        </Style>
+    </Window.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="2*"/>
+            <RowDefinition Height="2*"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Border Grid.Row="0"
+                Style="{StaticResource BorderFrameStyle}">
+           <Grid>
+               <Grid.RowDefinitions>
+                   <RowDefinition Height="Auto"/>
+                   <RowDefinition Height="Auto"/>
+                   <RowDefinition Height="*"/>
+                   <RowDefinition Height="*"/>
+               </Grid.RowDefinitions>
+               <StackPanel Grid.Row="0"
+                           Orientation="Horizontal">
+                    <TextBox Width="350"></TextBox>
+                    <Button Width="25" Content="..."></Button>
+               </StackPanel>
+           </Grid>
+        </Border>
+        <Border Grid.Row="1"
+                Style="{StaticResource BorderFrameStyle}">
+
+        </Border>
+        <Border Grid.Row="2"
+                Style="{StaticResource BorderFrameStyle}">
+
+        </Border>
+    </Grid>
+</Window>
