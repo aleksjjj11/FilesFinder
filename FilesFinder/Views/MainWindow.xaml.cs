@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using FilesFinder.ViewModels;
 
 namespace FilesFinder
 {
@@ -22,6 +23,7 @@ namespace FilesFinder
     {
         public MainWindow()
         {
+            DataContext = new MainViewModel();
             InitializeComponent();
         }
     }
