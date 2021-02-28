@@ -1,8 +1,11 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -16,12 +19,47 @@ namespace FilesFinder.ViewModels
     public class MainViewModel : INotifyPropertyChanged
     {
         private BackgroundWorker bwFindFiles;
-        public ObservableCollection<string> FoundFilesCollection { get; }
+        private ObservableCollection<string> _foundFilesCollection;
+
+        public ObservableCollection<string> FoundFilesCollection
+        {
+            get => _foundFilesCollection;
+            set
+            {
+                _foundFilesCollection = value;
+                OnPropertyChanged(nameof(FoundFilesCollection));
+            }
+        }
 
         public MainViewModel()
         {
             FoundFilesCollection = new ObservableCollection<string>();
-            bwFindFiles = new BackgroundWorker();
+            bwFindFiles = new BackgroundWorker
+            {
+                WorkerReportsProgress = true
+            };
+            bwFindFiles.DoWork += (sender, args) =>
+            {
+                var files = Directory.GetFiles(CurrentDirectory, FileMask, SearchOption.AllDirectories);
+                int i = 1;
+                foreach (var file in files)
+                {
+                    if (bwFindFiles.CancellationPending == true) break;
+                    bwFindFiles.ReportProgress(i / files.Length * 100, file);
+                    i++;
+                    Thread.Sleep(TimeSpan.FromMilliseconds(50));
+                }
+            };
+
+            bwFindFiles.ProgressChanged += (sender, args) =>
+            {
+                FoundFilesCollection.Add(args.UserState as string);
+            };
+
+            bwFindFiles.RunWorkerCompleted += (sender, args) =>
+            {
+                
+            };
         }
         //Разделитель для масок ;
         private string _findFiles;
@@ -100,9 +138,9 @@ namespace FilesFinder.ViewModels
 
         public ICommand FindFilesCommand => new RelayCommand(() =>
         {
-            var files = Directory.GetFiles(CurrentDirectory, FileMask, SearchOption.AllDirectories);
-
-        }, () => string.IsNullOrWhiteSpace(FindFiles) && string.IsNullOrWhiteSpace(FileMask));
+            FoundFilesCollection.Clear();
+            bwFindFiles.RunWorkerAsync();
+        }, () => true);
 
         public event PropertyChangedEventHandler PropertyChanged;
 

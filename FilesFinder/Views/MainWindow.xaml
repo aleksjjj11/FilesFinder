@@ -9,7 +9,7 @@
         mc:Ignorable="d"
         WindowStartupLocation="CenterScreen"
         Background="Gray"
-        Title="MainWindow" Height="600" Width="800">
+        Title="MainWindow" Height="700" Width="800">
     <Window.Resources>
         <Style x:Key="BorderFrameStyle" TargetType="Border">
             <Setter Property="Background" Value="#606060"/>
@@ -28,7 +28,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="3*"/>
             <RowDefinition Height="2*"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="2*"/>
         </Grid.RowDefinitions>
         <Border Grid.Row="0"
                 Style="{StaticResource BorderFrameStyle}">
@@ -93,9 +93,17 @@
         </Border>
         <Border Grid.Row="2"
                 Style="{StaticResource BorderFrameStyle}">
-            <ItemsControl>
-
-            </ItemsControl>
+            <ScrollViewer VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding FoundFilesCollection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Label Style="{StaticResource LabelStyle}"
+                                   Content="{Binding .}"></Label>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
         </Border>
     </Grid>
 </Window>
