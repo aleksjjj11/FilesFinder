@@ -8,7 +8,10 @@
 
   <ItemGroup>
     <Folder Include="Models\" />
-    <Folder Include="ViewModels\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Windows7APICodePack-Shell" Version="1.1.0" />
   </ItemGroup>
 
 </Project>
