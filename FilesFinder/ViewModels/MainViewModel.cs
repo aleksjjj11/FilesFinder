@@ -40,7 +40,11 @@ namespace FilesFinder.ViewModels
             };
             bwFindFiles.DoWork += (sender, args) =>
             {
-                var files = Directory.GetFiles(CurrentDirectory, FileMask, SearchOption.AllDirectories);
+                var searchOption = IncludeSubDirections == true
+                    ? SearchOption.AllDirectories
+                    : SearchOption.TopDirectoryOnly;
+
+                var files = Directory.GetFiles(CurrentDirectory, FileMask, searchOption);
                 int i = 1;
                 foreach (var file in files)
                 {
