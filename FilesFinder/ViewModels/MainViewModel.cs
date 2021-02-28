@@ -45,7 +45,8 @@ namespace FilesFinder.ViewModels
                 foreach (var file in files)
                 {
                     if (bwFindFiles.CancellationPending == true) break;
-                    bwFindFiles.ReportProgress(i / files.Length * 100, file);
+                    double progressValue = (double)i / files.Length * 100;
+                    bwFindFiles.ReportProgress((int)progressValue, file);
                     i++;
                     Thread.Sleep(TimeSpan.FromMilliseconds(50));
                 }
@@ -54,13 +55,27 @@ namespace FilesFinder.ViewModels
             bwFindFiles.ProgressChanged += (sender, args) =>
             {
                 FoundFilesCollection.Add(args.UserState as string);
+                ProgressFinding = args.ProgressPercentage;
             };
 
             bwFindFiles.RunWorkerCompleted += (sender, args) =>
             {
-                
+                MessageBox.Show("Completed");
             };
         }
+
+        private int _progressFinding;
+
+        public int ProgressFinding
+        {
+            get => _progressFinding;
+            set
+            {
+                _progressFinding = value;
+                OnPropertyChanged(nameof(ProgressFinding));
+            }
+        }
+
         //Разделитель для масок ;
         private string _findFiles;
 
@@ -140,7 +155,7 @@ namespace FilesFinder.ViewModels
         {
             FoundFilesCollection.Clear();
             bwFindFiles.RunWorkerAsync();
-        }, () => true);
+        }, () => bwFindFiles.IsBusy == false);
 
         public event PropertyChangedEventHandler PropertyChanged;
 
