@@ -65,6 +65,8 @@ namespace FilesFinder.ViewModels
                 ? SearchOption.AllDirectories
                 : SearchOption.TopDirectoryOnly;
 
+            bool isReplacing = (bool) e.Argument;
+
             //var excludeFiles = ExcludeMask.Split(";");
             var files = Directory.GetFiles(CurrentDirectory, FileMask, searchOption).ToList();
             //var medFiles = new List<string>(files);
@@ -91,6 +93,12 @@ namespace FilesFinder.ViewModels
                 int countSubText = CountMatches(textFile, FindText);
 
                 if (countSubText == 0) continue;
+
+                if (isReplacing)
+                {
+                    textFile = textFile.Replace(FindText, ReplaceText);
+                    File.WriteAllText(file, textFile);
+                }
 
                 File.AppendAllText("log.txt", $"File: {file}\n{med}\n");
 
