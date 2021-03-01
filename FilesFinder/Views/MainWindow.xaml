@@ -9,6 +9,7 @@
         mc:Ignorable="d"
         WindowStartupLocation="CenterScreen"
         Background="Gray"
+        MinWidth="600"
         Title="MainWindow" Height="700" Width="800">
     <Window.Resources>
         <Style x:Key="BorderFrameStyle" TargetType="Border">
@@ -83,6 +84,11 @@
                        <TextBox Width="150"
                                 Style="{StaticResource TextBoxStyle}"
                                 Text="{Binding ExcludeMask}"></TextBox>
+                        <Button Content="Cancel work"
+                                Height="25"
+                                Padding="5 0"
+                                Margin="10 0"
+                                Command="{Binding CancelWorkCommand}"></Button>
                    </StackPanel>
                 </Grid>
                <Grid Grid.Row="2">
@@ -102,38 +108,96 @@
                             Style="{StaticResource TextBoxStyle}"
                             Height="100"
                             TextWrapping="Wrap"
-                            Text="{Binding FindFiles, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></TextBox>
+                            Text="{Binding FindText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></TextBox>
                    <Button Grid.Row="1" Grid.Column="1" Content="Find Only"
                            Margin="0 5"
-                           Height="30"
+                           Width="150"
+                           Height="25"
+                           HorizontalAlignment="Right"
                            Command="{Binding FindFilesCommand}"></Button>
                </Grid>
            </Grid>
         </Border>
         <Border Grid.Row="1"
                 Style="{StaticResource BorderFrameStyle}">
-
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="9*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="4*"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Label Grid.Column="0" Grid.Row="0"
+                       Style="{StaticResource LabelStyle}"
+                       Content="Replace:"/>
+                <TextBox Grid.Row="0"
+                         Grid.Column="1"
+                         Text="{Binding ReplaceText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></TextBox>
+                <Button Grid.Row="1"
+                        Grid.Column="1"
+                        Margin="0 5"
+                        Width=" 150"
+                        HorizontalAlignment="Right"
+                        Content="Replace"
+                        Command="{Binding ReplaceCommand}"></Button>
+            </Grid>
         </Border>
         <Border Grid.Row="2"
                 Style="{StaticResource BorderFrameStyle}">
             <Grid>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="9*"/>
+                    <RowDefinition Height="2*"/>
+                    <RowDefinition Height="8*"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <ScrollViewer Grid.Row="0" 
+                <Grid Grid.Row="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="5*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="4*"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Grid.Column="0" 
+                           Style="{StaticResource LabelStyle}"
+                           Content="Path"></Label>
+                    <Label Grid.Column="1" 
+                             Style="{StaticResource LabelStyle}"
+                             Content="Matches"></Label>
+                    <Label Grid.Column="2" 
+                             Style="{StaticResource LabelStyle}"
+                             Content="Error"></Label>
+                </Grid>
+                <ScrollViewer Grid.Row="1" 
                               VerticalScrollBarVisibility="Visible"
                               HorizontalScrollBarVisibility="Auto">
-                    <ItemsControl ItemsSource="{Binding FoundFilesCollection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                    <ItemsControl ItemsSource="{Binding FoundFilesCollection, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Label Style="{StaticResource LabelStyle}"
-                                       Content="{Binding .}"></Label>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="5*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="4*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox Grid.Column="0" 
+                                           Style="{StaticResource TextBoxStyle}"
+                                           IsReadOnly="True"
+                                           Text="{Binding Path=Path}"></TextBox>
+                                    <TextBox Grid.Column="1" 
+                                             Style="{StaticResource TextBoxStyle}"
+                                             IsReadOnly="True"
+                                             Text="{Binding Path=CountMatches}"></TextBox>
+                                    <TextBox Grid.Column="2" 
+                                             Style="{StaticResource TextBoxStyle}"
+                                             IsReadOnly="True"
+                                             Text="{Binding Path=Error}"></TextBox>
+                                </Grid>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </ScrollViewer>
-                <ProgressBar Grid.Row="1" 
+                <ProgressBar Grid.Row="2" 
                              Height="25"
                              Value="{Binding ProgressFinding, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></ProgressBar>
             </Grid>

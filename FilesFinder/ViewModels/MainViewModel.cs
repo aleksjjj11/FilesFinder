@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -11,6 +14,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using FilesFinder.Annotations;
 using FilesFinder.Commands;
+using FilesFinder.Models;
 using Microsoft.Win32;
 using Microsoft.WindowsAPICodePack.Dialogs;
 
@@ -18,10 +22,10 @@ namespace FilesFinder.ViewModels
 {
     public class MainViewModel : INotifyPropertyChanged
     {
-        private BackgroundWorker bwFindFiles;
-        private ObservableCollection<string> _foundFilesCollection;
+        private BackgroundWorker _bwFindFiles;
+        private ObservableCollection<FoundFile> _foundFilesCollection;
 
-        public ObservableCollection<string> FoundFilesCollection
+        public ObservableCollection<FoundFile> FoundFilesCollection
         {
             get => _foundFilesCollection;
             set
@@ -33,39 +37,68 @@ namespace FilesFinder.ViewModels
 
         public MainViewModel()
         {
-            FoundFilesCollection = new ObservableCollection<string>();
-            bwFindFiles = new BackgroundWorker
+            FoundFilesCollection = new ObservableCollection<FoundFile>();
+            _bwFindFiles = new BackgroundWorker
             {
-                WorkerReportsProgress = true
+                WorkerReportsProgress = true,
+                WorkerSupportsCancellation = true
             };
-            bwFindFiles.DoWork += (sender, args) =>
-            {
-                var searchOption = IncludeSubDirections == true
-                    ? SearchOption.AllDirectories
-                    : SearchOption.TopDirectoryOnly;
+            _bwFindFiles.DoWork += BwFindFilesOnDoWork;
+            _bwFindFiles.ProgressChanged += BwFindFilesOnProgressChanged;
+            _bwFindFiles.RunWorkerCompleted += BwFindFilesOnRunWorkerCompleted;
+        }
 
-                var files = Directory.GetFiles(CurrentDirectory, FileMask, searchOption);
-                int i = 1;
-                foreach (var file in files)
-                {
-                    if (bwFindFiles.CancellationPending == true) break;
-                    double progressValue = (double)i / files.Length * 100;
-                    bwFindFiles.ReportProgress((int)progressValue, file);
-                    i++;
-                    Thread.Sleep(TimeSpan.FromMilliseconds(50));
-                }
-            };
+        private void BwFindFilesOnRunWorkerCompleted(object sender, RunWorkerCompletedEventArgs args)
+        {
+            MessageBox.Show("Completed");
+        }
 
-            bwFindFiles.ProgressChanged += (sender, args) =>
-            {
-                FoundFilesCollection.Add(args.UserState as string);
-                ProgressFinding = args.ProgressPercentage;
-            };
+        private void BwFindFilesOnProgressChanged(object sender, ProgressChangedEventArgs args)
+        {
+            FoundFilesCollection.Add(args.UserState as FoundFile);
+            ProgressFinding = args.ProgressPercentage;
+        }
 
-            bwFindFiles.RunWorkerCompleted += (sender, args) =>
+        private void BwFindFilesOnDoWork(object sender, DoWorkEventArgs e)
+        {
+            var searchOption = IncludeSubDirections == true
+                ? SearchOption.AllDirectories
+                : SearchOption.TopDirectoryOnly;
+
+            //var excludeFiles = ExcludeMask.Split(";");
+            var files = Directory.GetFiles(CurrentDirectory, FileMask, searchOption).ToList();
+            //var medFiles = new List<string>(files);
+            //foreach (var file in files)
+            //{
+            //    foreach (var excludeFile in excludeFiles)
+            //    {
+            //        if (file.Contains(excludeFile.Replace("*", "")))
+            //        {
+
+            //        }
+            //    }
+            //}
+
+            int i = 1;
+            File.Delete("log.txt");
+            foreach (var file in files)
             {
-                MessageBox.Show("Completed");
-            };
+                if (_bwFindFiles.CancellationPending == true) break;
+                double progressValue = (double)i / files.Count * 100;
+                string textFile = File.ReadAllText(file);
+                var bytesFile = File.ReadAllBytes(file);
+                string med = Encoding.Default.GetString(bytesFile);
+                int countSubText = CountMatches(textFile, FindText);
+
+                if (countSubText == 0) continue;
+
+                File.AppendAllText("log.txt", $"File: {file}\n{med}\n");
+
+
+                _bwFindFiles.ReportProgress((int)progressValue, new FoundFile(file, countSubText));
+                i++;
+                Thread.Sleep(TimeSpan.FromMilliseconds(50));
+            }
         }
 
         private int _progressFinding;
@@ -80,16 +113,28 @@ namespace FilesFinder.ViewModels
             }
         }
 
-        //Разделитель для масок ;
-        private string _findFiles;
+        private string _replaceText;
 
-        public string FindFiles
+        public string ReplaceText
         {
-            get => _findFiles;
+            get => _replaceText;
             set
             {
-                _findFiles = value;
-                OnPropertyChanged(nameof(FindFiles));
+                _replaceText = value;
+                OnPropertyChanged(nameof(ReplaceText));
+            }
+        }
+
+        //Разделитель для масок ;
+        private string _findText;
+
+        public string FindText
+        {
+            get => _findText;
+            set
+            {
+                _findText = value;
+                OnPropertyChanged(nameof(FindText));
             }
         }
         private string _excludeMask;
@@ -138,6 +183,21 @@ namespace FilesFinder.ViewModels
             }
         }
 
+        public ICommand CancelWorkCommand => new RelayCommand(() =>
+        {
+            _bwFindFiles.CancelAsync();
+        }, () => _bwFindFiles.IsBusy == true);
+
+        public ICommand ReplaceCommand => new RelayCommand(() =>
+        {
+            FoundFilesCollection.Clear();
+            //true - will find with replacing
+            _bwFindFiles.RunWorkerAsync(true);
+        }, () => string.IsNullOrWhiteSpace(ReplaceText) == false &&
+                         string.IsNullOrWhiteSpace(FileMask) == false &&
+                         string.IsNullOrWhiteSpace(FindText) == false &&
+                         _bwFindFiles.IsBusy == false);
+
         public ICommand OpenDirectoryCommand => new RelayCommand(() =>
         {
             //Открываем директорию и сохраняем её
@@ -158,8 +218,18 @@ namespace FilesFinder.ViewModels
         public ICommand FindFilesCommand => new RelayCommand(() =>
         {
             FoundFilesCollection.Clear();
-            bwFindFiles.RunWorkerAsync();
-        }, () => bwFindFiles.IsBusy == false);
+            //false - will just find without replacing
+            _bwFindFiles.RunWorkerAsync(false);
+        }, () => string.IsNullOrWhiteSpace(FileMask) == false &&
+                         string.IsNullOrWhiteSpace(FindText) == false &&
+                         _bwFindFiles.IsBusy == false);
+
+        private int CountMatches(string str, string subStr)
+        {
+            int result = 0;
+            result = (str.Length - str.Replace(subStr, "").Length) / subStr.Length;
+            return result;
+        }
 
         public event PropertyChangedEventHandler PropertyChanged;
 

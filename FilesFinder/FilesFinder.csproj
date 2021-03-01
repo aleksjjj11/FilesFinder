@@ -7,10 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Models\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Windows7APICodePack-Shell" Version="1.1.0" />
   </ItemGroup>
 
