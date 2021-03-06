@@ -67,19 +67,8 @@ namespace FilesFinder.ViewModels
 
             bool isReplacing = (bool) e.Argument;
 
-            //var excludeFiles = ExcludeMask.Split(";");
-            var files = Directory.GetFiles(CurrentDirectory, FileMask, searchOption).ToList();
-            //var medFiles = new List<string>(files);
-            //foreach (var file in files)
-            //{
-            //    foreach (var excludeFile in excludeFiles)
-            //    {
-            //        if (file.Contains(excludeFile.Replace("*", "")))
-            //        {
-
-            //        }
-            //    }
-            //}
+            //var files = Directory.GetFiles(CurrentDirectory, FileMask, searchOption).ToList();
+            var files = GetFilesEnumerable().ToList();
 
             int i = 1;
             File.Delete("log.txt");
@@ -236,6 +225,38 @@ namespace FilesFinder.ViewModels
         {
             int result = 0;
             result = (str.Length - str.Replace(subStr, "").Length) / subStr.Length;
+            return result;
+        }
+
+        public IEnumerable<string> GetFilesEnumerable()
+        {
+            var searchOption = IncludeSubDirections == true
+                ? SearchOption.AllDirectories
+                : SearchOption.TopDirectoryOnly;
+            IEnumerable<string> result = null;
+            string[] allFoundFiles = new string[0];
+            string[] allExcludeFiles = new string[0];
+
+            //Получаем все маски для поиска необходимых файлов
+            var findMasks = FileMask.Replace(" ", "").Split(';');
+            var excludeMasks = ExcludeMask?.Replace(" ", "").Split(';');
+            foreach (var findMask in findMasks)
+            {
+                allFoundFiles = allFoundFiles.Concat(Directory.GetFiles(CurrentDirectory, findMask, searchOption)).ToArray();
+            }
+
+            if (string.IsNullOrWhiteSpace(ExcludeMask) == false)
+            {
+                foreach (var excludeMask in excludeMasks)
+                {
+                    allExcludeFiles = allExcludeFiles.Concat(Directory.GetFiles(CurrentDirectory, excludeMask, searchOption)).ToArray();
+                }
+            }
+            
+            result = string.IsNullOrWhiteSpace(ExcludeMask) == false
+                ? allFoundFiles.Except(allExcludeFiles).AsEnumerable()
+                : allFoundFiles.AsEnumerable();
+
             return result;
         }
 
