@@ -21,8 +21,8 @@ namespace TestOfLogic
                 FileMask = findMask,
                 ExcludeMask = excludeMask,
             };
-            var res = viewmodel.GetFilesEnumerable().ToArray();
-            Assert.True(true);
+            //var res = viewmodel.GetFilesEnumerable().ToArray();
+            Assert.IsTrue(true);
         }
     }
 }
