@@ -67,7 +67,6 @@ namespace FilesFinder.ViewModels
 
             bool isReplacing = (bool) e.Argument;
 
-            //var files = Directory.GetFiles(CurrentDirectory, FileMask, searchOption).ToList();
             var files = GetFilesEnumerable().ToList();
 
             int i = 1;
