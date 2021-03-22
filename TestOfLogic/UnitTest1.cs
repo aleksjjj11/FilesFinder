@@ -22,7 +22,7 @@ namespace TestOfLogic
                 ExcludeMask = excludeMask,
             };
             var res = viewmodel.GetFilesEnumerable().ToArray();
-            Assert.Pass();
+            Assert.True(true);
         }
     }
 }
